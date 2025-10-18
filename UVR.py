@@ -2280,25 +2280,28 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         if confirm:
             self.save_values(app_close=True, is_restart=True)
         
-    def delete_temps(self, is_start_up=False):  
+    def delete_temps(self, is_start_up=False):
         """Deletes temp files"""
-        
+
         DIRECTORIES = (BASE_PATH, VR_MODELS_DIR, MDX_MODELS_DIR, DEMUCS_MODELS_DIR, DEMUCS_NEWER_REPO_DIR)
         EXTENSIONS = (('.aes', '.txt', '.tmp'))
-        
+        # Don't delete requirements files or other important txt files
+        EXCLUDE_FILES = ('requirements_rocm.txt', 'requirements_nvidia.txt', 'requirements.txt', 'LICENSE.txt', 'README.txt')
+
         try:
             if os.path.isfile(f"{current_patch}{application_extension}"):
                 os.remove(f"{current_patch}{application_extension}")
-            
+
             if not is_start_up:
                 if os.path.isfile(SPLASH_DOC):
                     os.remove(SPLASH_DOC)
-            
+
             for dir in DIRECTORIES:
                 for temp_file in os.listdir(dir):
                     if temp_file.endswith(EXTENSIONS):
-                        if os.path.isfile(os.path.join(dir, temp_file)):
-                            os.remove(os.path.join(dir, temp_file))
+                        if temp_file not in EXCLUDE_FILES:
+                            if os.path.isfile(os.path.join(dir, temp_file)):
+                                os.remove(os.path.join(dir, temp_file))
         except Exception as e:
             self.error_log_var.set(error_text(TEMP_FILE_DELETION_TEXT, e))
         
