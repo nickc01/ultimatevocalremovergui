@@ -20,6 +20,7 @@ FileGroupDescriptorW = 'FileGroupDescriptorW - FileContents'# ??
 
 from . import TkinterDnD
 from .TkinterDnD import Tk
-from .TkinterDnD import TixTk
+# TixTk disabled for Python 3.13+ compatibility
+# from .TkinterDnD import TixTk
 
 

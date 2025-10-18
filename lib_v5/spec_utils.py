@@ -271,8 +271,8 @@ def wave_to_spectrogram(wave, hop_length, n_fft, mp, band, is_v51_model=False):
         wave_left = np.asfortranarray(wave[0])
         wave_right = np.asfortranarray(wave[1])
 
-    spec_left = librosa.stft(wave_left, n_fft, hop_length=hop_length)
-    spec_right = librosa.stft(wave_right, n_fft, hop_length=hop_length)
+    spec_left = librosa.stft(wave_left, n_fft=n_fft, hop_length=hop_length)
+    spec_right = librosa.stft(wave_right, n_fft=n_fft, hop_length=hop_length)
     
     spec = np.asfortranarray([spec_left, spec_right])
 
@@ -284,27 +284,38 @@ def wave_to_spectrogram(wave, hop_length, n_fft, mp, band, is_v51_model=False):
 def spectrogram_to_wave(spec, hop_length=1024, mp={}, band=0, is_v51_model=True):
     spec_left = np.asfortranarray(spec[0])
     spec_right = np.asfortranarray(spec[1])
-    
+
     wave_left = librosa.istft(spec_left, hop_length=hop_length)
     wave_right = librosa.istft(spec_right, hop_length=hop_length)
-    
+
+    # Clean up NaN/Inf values that can occur from numerical instability
+    wave_left = np.nan_to_num(wave_left, nan=0.0, posinf=0.0, neginf=0.0)
+    wave_right = np.nan_to_num(wave_right, nan=0.0, posinf=0.0, neginf=0.0)
+
     if is_v51_model:
         cc = mp.param['band'][band].get('convert_channels')
         if 'mid_side_c' == cc:
-            return np.asfortranarray([np.subtract(wave_left / 1.0625, wave_right / 4.25), np.add(wave_right / 1.0625, wave_left / 4.25)])    
+            result = np.asfortranarray([np.subtract(wave_left / 1.0625, wave_right / 4.25), np.add(wave_right / 1.0625, wave_left / 4.25)])
         elif 'mid_side' == cc:
-            return np.asfortranarray([np.add(wave_left, wave_right / 2), np.subtract(wave_left, wave_right / 2)])
+            result = np.asfortranarray([np.add(wave_left, wave_right / 2), np.subtract(wave_left, wave_right / 2)])
         elif 'stereo_n' == cc:
-            return np.asfortranarray([np.subtract(wave_left, wave_right * .25), np.subtract(wave_right, wave_left * .25)])
+            result = np.asfortranarray([np.subtract(wave_left, wave_right * .25), np.subtract(wave_right, wave_left * .25)])
+        else:
+            result = np.asfortranarray([wave_left, wave_right])
     else:
         if mp.param['reverse']:
-            return np.asfortranarray([np.flip(wave_left), np.flip(wave_right)])
+            result = np.asfortranarray([np.flip(wave_left), np.flip(wave_right)])
         elif mp.param['mid_side']:
-            return np.asfortranarray([np.add(wave_left, wave_right / 2), np.subtract(wave_left, wave_right / 2)])
+            result = np.asfortranarray([np.add(wave_left, wave_right / 2), np.subtract(wave_left, wave_right / 2)])
         elif mp.param['mid_side_b2']:
-            return np.asfortranarray([np.add(wave_right / 1.25, .4 * wave_left), np.subtract(wave_left / 1.25, .4 * wave_right)])
-    
-    return np.asfortranarray([wave_left, wave_right])
+            result = np.asfortranarray([np.add(wave_right / 1.25, .4 * wave_left), np.subtract(wave_left / 1.25, .4 * wave_right)])
+        else:
+            result = np.asfortranarray([wave_left, wave_right])
+
+    # Final safety check for NaN/Inf after channel operations
+    result = np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
+
+    return result
     
 def cmb_spectrogram_to_wave(spec_m, mp, extra_bins_h=None, extra_bins=None, is_v51_model=False):
     bands_n = len(mp.param['band'])    
@@ -337,7 +348,7 @@ def cmb_spectrogram_to_wave(spec_m, mp, extra_bins_h=None, extra_bins=None, is_v
                     spec_s *= get_lp_filter_mask(spec_s.shape[1], bp['lpf_start'], bp['lpf_stop'])
                 else:
                     spec_s = fft_lp_filter(spec_s, bp['lpf_start'], bp['lpf_stop'])
-                wave = librosa.resample(spectrogram_to_wave(spec_s, bp['hl'], mp, d, is_v51_model), bp['sr'], sr, res_type=wav_resolution)
+                wave = librosa.resample(spectrogram_to_wave(spec_s, bp['hl'], mp, d, is_v51_model), orig_sr=bp['sr'], target_sr=sr, res_type=wav_resolution)
             else: # mid
                 if is_v51_model:
                     spec_s *= get_hp_filter_mask(spec_s.shape[1], bp['hpf_start'], bp['hpf_stop'] - 1)
@@ -347,7 +358,7 @@ def cmb_spectrogram_to_wave(spec_m, mp, extra_bins_h=None, extra_bins=None, is_v
                     spec_s = fft_lp_filter(spec_s, bp['lpf_start'], bp['lpf_stop'])
                     
                 wave2 = np.add(wave, spectrogram_to_wave(spec_s, bp['hl'], mp, d, is_v51_model))
-                wave = librosa.resample(wave2, bp['sr'], sr, res_type=wav_resolution)
+                wave = librosa.resample(wave2, orig_sr=bp['sr'], target_sr=sr, res_type=wav_resolution)
         
     return wave
 
@@ -406,8 +417,8 @@ def wave_to_spectrogram_old(wave, hop_length, n_fft):
     wave_left = np.asfortranarray(wave[0])
     wave_right = np.asfortranarray(wave[1])
 
-    spec_left = librosa.stft(wave_left, n_fft, hop_length=hop_length)
-    spec_right = librosa.stft(wave_right, n_fft, hop_length=hop_length)
+    spec_left = librosa.stft(wave_left, n_fft=n_fft, hop_length=hop_length)
+    spec_right = librosa.stft(wave_right, n_fft=n_fft, hop_length=hop_length)
     
     spec = np.asfortranarray([spec_left, spec_right])
 
@@ -448,8 +459,8 @@ def adjust_aggr(mask, is_non_accom_stem, aggressiveness):
 def stft(wave, nfft, hl):
     wave_left = np.asfortranarray(wave[0])
     wave_right = np.asfortranarray(wave[1])
-    spec_left = librosa.stft(wave_left, nfft, hop_length=hl)
-    spec_right = librosa.stft(wave_right, nfft, hop_length=hl)
+    spec_left = librosa.stft(wave_left, n_fft=nfft, hop_length=hl)
+    spec_right = librosa.stft(wave_right, n_fft=nfft, hop_length=hl)
     spec = np.asfortranarray([spec_left, spec_right])
 
     return spec
@@ -541,7 +552,9 @@ def ensembling(a, inputs, is_wavs=False):
         if MIN_SPEC == a:
             input = np.where(np.abs(inputs[i]) <= np.abs(input), inputs[i], input)
         if MAX_SPEC == a:
-            input = np.where(np.abs(inputs[i]) >= np.abs(input), inputs[i], input)  
+            #input = np.array(np.where(np.greater_equal(np.abs(inputs[i]), np.abs(input)), inputs[i], input), dtype=object)
+            input = np.where(np.abs(inputs[i]) >= np.abs(input), inputs[i], input)
+            #max_spec = np.array([np.where(np.greater_equal(np.abs(inputs[i]), np.abs(input)), s, specs[0]) for s in specs[1:]], dtype=object)[-1]
 
     #linear_ensemble
     #input = ensemble_wav(inputs, split_size=1)
@@ -571,12 +584,15 @@ def ensemble_inputs(audio_input, algorithm, is_normalization, wav_type_set, save
     else:
         specs = []
         
-        for i in range(len(audio_input)):  
+        for i in range(len(audio_input)):
             wave, samplerate = librosa.load(audio_input[i], mono=False, sr=44100)
+            # Ensure wave is always 2D (channels, samples)
+            if wave.ndim == 1:
+                wave = wave.reshape(1, -1)
             wavs_.append(wave)
             spec = wave if is_wave else wave_to_spectrogram_no_mp(wave)
             specs.append(spec)
-        
+
         wave_shapes = [w.shape[1] for w in wavs_]
         target_shape = wavs_[wave_shapes.index(max(wave_shapes))]
         
@@ -716,7 +732,7 @@ def change_pitch_semitones(y, sr, semitone_shift):
     factor = 2 ** (semitone_shift / 12)  # Convert semitone shift to factor for resampling
     y_pitch_tuned = []
     for y_channel in y:
-        y_pitch_tuned.append(librosa.resample(y_channel, sr, sr*factor, res_type=wav_resolution_float_resampling))
+        y_pitch_tuned.append(librosa.resample(y_channel, orig_sr=sr, target_sr=sr*factor, res_type=wav_resolution_float_resampling))
     y_pitch_tuned = np.array(y_pitch_tuned)
     new_sr = sr * factor
     return y_pitch_tuned, new_sr
@@ -756,8 +772,12 @@ def average_audio(audio):
 
     for i in range(len(audio)):
         wave = librosa.load(audio[i], sr=44100, mono=False)
-        waves.append(wave[0])
-        wave_shapes.append(wave[0].shape[1])
+        wave_data = wave[0]
+        # Ensure wave is always 2D (channels, samples)
+        if wave_data.ndim == 1:
+            wave_data = wave_data.reshape(1, -1)
+        waves.append(wave_data)
+        wave_shapes.append(wave_data.shape[1])
 
     wave_shapes_index = wave_shapes.index(max(wave_shapes))
     target_shape = waves[wave_shapes_index]

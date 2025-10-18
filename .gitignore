@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# UVR specific
+data.pkl
+error_log.txt
+
+# User settings and caches
+gui_data/cr_text.txt
+gui_data/saved_ensembles/
+
+# Downloaded models (users should download these themselves)
+models/**/*.pth
+models/**/*.onnx
+models/**/*.ckpt
+models/**/*.th
+!models/**/model_data/
+models/**/model_data/*.yaml
+
+# Keep model metadata but not the actual models
+!models/**/model_data/model_data.json
+!models/**/model_data/model_name_mapper.json
+
+# Demucs model files
+models/Demucs_Models/v3_v4_repo/*.th
+models/Demucs_Models/v3_v4_repo/*.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

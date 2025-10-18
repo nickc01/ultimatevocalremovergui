@@ -25,7 +25,8 @@ Tk window and all its descendants.
 
 
 import tkinter
-from tkinter import tix
+# Python 3.13+ removed tkinter.tix - commenting out for compatibility
+# from tkinter import tix
 
 TkdndVersion = None
 ARM = 'arm'
@@ -286,9 +287,10 @@ class Tk(tkinter.Tk, DnDWrapper):
         tkinter.Tk.__init__(self, *args, **kw)
         self.TkdndVersion = _require(self)
 
-class TixTk(tix.Tk, DnDWrapper):
-    '''Creates a new instance of a tix.Tk() window; all methods of the
-    DnDWrapper class apply to this window and all its descendants.'''
-    def __init__(self, *args, **kw):
-        tix.Tk.__init__(self, *args, **kw)
-        self.TkdndVersion = _require(self)
+# Python 3.13+ removed tkinter.tix - TixTk class disabled
+# class TixTk(tix.Tk, DnDWrapper):
+#     '''Creates a new instance of a tix.Tk() window; all methods of the
+#     DnDWrapper class apply to this window and all its descendants.'''
+#     def __init__(self, *args, **kw):
+#         tix.Tk.__init__(self, *args, **kw)
+#         self.TkdndVersion = _require(self)

@@ -1,0 +1,62 @@
+# Ultimate Vocal Remover GUI - NVIDIA CUDA Requirements
+# Python 3.13 compatible
+
+# Note: PyTorch with CUDA must be installed separately
+# Install PyTorch CUDA from: https://pytorch.org/get-started/locally/
+# Example: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Core audio processing
+librosa>=0.11.0
+audioread>=3.0.0
+soundfile>=0.12.1
+resampy>=0.4.2
+pydub>=0.25.1
+scipy>=1.16.0
+
+# Deep learning and model libraries
+onnx
+onnxruntime-gpu
+onnx2pytorch
+pytorch-lightning>=2.0.0
+timm>=0.9.0
+transformers>=4.35.0
+einops>=0.6.0
+segmentation-models-pytorch>=0.3.3
+rotary-embedding-torch>=0.3.5
+
+# Audio augmentation
+audiomentations>=0.24.0
+torch-audiomentations
+asteroid>=0.7.0
+julius>=0.2.7
+
+# GUI dependencies
+opencv-python>=4.6.0
+Pillow>=9.3.0
+pyglet>=1.5.23
+pyperclip>=1.8.2
+screeninfo>=0.8.1
+
+# Utilities
+wget>=3.2
+psutil>=5.9.4
+natsort>=8.2.0
+kthread>=0.2.3
+PyYAML>=6.0
+omegaconf>=2.2.3
+ml_collections>=0.1.1
+certifi>=2022.12.7
+urllib3>=1.26.12
+numpy>=1.23.5
+
+# Audio enhancement
+matchering>=2.0.6
+
+# Crypto for license/keys
+cryptography>=3.4.6
+cffi>=1.15.1
+
+# Additional ML dependencies
+diffq
+beartype
+spafe>=0.3.2

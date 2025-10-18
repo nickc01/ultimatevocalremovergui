@@ -5,7 +5,7 @@ CUDA_MEMORY_ERROR = "CUDA out of memory"
 CUDA_RUNTIME_ERROR = "CUDNN error executing cudnnSetTensorNdDescriptor"
 DEMUCS_MODEL_MISSING_ERROR = "is neither a single pre-trained model or a bag of models."
 ENSEMBLE_MISSING_MODEL_ERROR = "local variable \'enseExport\' referenced before assignment"
-FFMPEG_MISSING_ERROR = """audioread\__init__.py", line 116, in audio_open"""
+FFMPEG_MISSING_ERROR = r"""audioread\__init__.py", line 116, in audio_open"""
 FILE_MISSING_ERROR = "FileNotFoundError"
 MDX_MEMORY_ERROR = "onnxruntime::CudaCall CUDA failure 2: out of memory"
 MDX_MODEL_MISSING = "[ONNXRuntimeError] : 3 : NO_SUCHFILE"
@@ -79,7 +79,7 @@ ERROR_MAPPER = {
 }
 
 def error_text(process_method, exception):
-                 
+
     traceback_text = ''.join(traceback.format_tb(exception.__traceback__))
     message = f'{type(exception).__name__}: "{exception}"\nTraceback Error: "\n{traceback_text}"\n'
     error_message = f'\n\nRaw Error Details:\n\n{message}\nError Time Stamp [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}]\n'
@@ -90,9 +90,24 @@ def error_text(process_method, exception):
             final_message = full_text
             break
     else:
-        final_message = (CONTACT_DEV) 
-        
-    return f"{process}{final_message}{error_message}"
+        final_message = (CONTACT_DEV)
+
+    full_error_text = f"{process}{final_message}{error_message}"
+
+    # Write error to log file for crash recovery
+    try:
+        import os
+        log_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        log_file = os.path.join(log_dir, 'error_log.txt')
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write('\n' + '='*80 + '\n')
+            f.write(full_error_text)
+            f.write('\n' + '='*80 + '\n')
+        print(f"Error logged to: {log_file}")
+    except Exception as log_error:
+        print(f"Failed to write error log: {log_error}")
+
+    return full_error_text
 
 def error_dialouge(exception):
     

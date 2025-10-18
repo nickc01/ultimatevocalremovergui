@@ -1,8 +1,102 @@
-# Ultimate Vocal Remover GUI v5.6
+# Ultimate Vocal Remover GUI v5.6 - Python 3.13 + ROCm/CUDA Port
+
 <img src="https://raw.githubusercontent.com/Anjok07/ultimatevocalremovergui/master/gui_data/img/UVR_v5.6.png?raw=true" />
 
 [![Release](https://img.shields.io/github/release/anjok07/ultimatevocalremovergui.svg)](https://github.com/anjok07/ultimatevocalremovergui/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/anjok07/ultimatevocalremovergui/total.svg)](https://github.com/anjok07/ultimatevocalremovergui/releases)
+
+## Fork Information
+
+**This is a quick-and-dirty port** of Ultimate Vocal Remover GUI to work with:
+- **Python 3.13** (with tkinter compatibility fixes)
+- **AMD ROCm** (tested on Radeon RX 7900 XTX with ROCm 6.4)
+- **NVIDIA CUDA** (with PyTorch 2.6+ compatibility)
+- **Mel-Band Roformer** support added
+- **Modern library versions** (scipy 1.16+, matchering 2.0+, etc.)
+
+**Status:** Working but not thoroughly tested. Not all models may work with this. Use at your own risk.
+
+**Original Repository:** [Anjok07/ultimatevocalremovergui](https://github.com/Anjok07/ultimatevocalremovergui)
+
+## Key Changes from Upstream
+
+### Compatibility Fixes
+- **Python 3.13**: Removed deprecated `tkinter.tix` usage
+- **PyTorch 2.6+**: Added `weights_only=False` for Demucs model loading
+- **scipy 1.16+**: Updated `signal.hamming()` → `signal.windows.hamming()`
+- **matchering 2.0+**: Updated API from `save_audiofile()` to `Result` class
+- **librosa**: Fixed mono audio handling in ensemble tools
+
+### ROCm Support
+- Works with PyTorch ROCm backend
+- Tested on AMD Radeon RX 7900 XTX with ROCm 6.4
+
+### Improvements
+- Added error logging to file (`error_log.txt`) for crash recovery
+- Fixed NaN/Inf handling in VR Architecture spectral processing
+- Fixed division by zero in progress bar calculations
+- Added short audio looping for better Mel-Roformer context
+
+## Installation (This Fork)
+
+### Prerequisites
+- Python 3.13
+- FFmpeg (for audio file conversion)
+- PyTorch with ROCm (AMD) or CUDA (NVIDIA)
+
+### Linux Installation
+
+1. **Clone this repository:**
+```bash
+git clone https://github.com/nickc01/ultimatevocalremovergui.git
+cd ultimatevocalremovergui
+```
+
+2. **Install system dependencies:**
+```bash
+# Debian/Ubuntu
+sudo apt update
+sudo apt install ffmpeg python3-tk
+
+# Arch/Gentoo
+sudo pacman -S ffmpeg tk
+# or: emerge -av media-video/ffmpeg dev-lang/tk
+```
+
+3. **Install PyTorch:**
+
+**For AMD ROCm:**
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.4
+```
+
+**For NVIDIA CUDA:**
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+
+4. **Install dependencies:**
+```bash
+# For ROCm
+pip install -r requirements_rocm.txt
+
+# For NVIDIA
+pip install -r requirements_nvidia.txt
+```
+
+5. **Run the application:**
+```bash
+python UVR.py
+```
+
+### Tested Configurations
+- Gentoo Linux + Python 3.13 + AMD RX 7900 XTX + ROCm 6.4
+- Other configurations not tested but should work
+
+### Downloading Models
+Models are not included in this repository. Download them from the UVR GUI:
+- Open Settings → Download Center
+- Or download manually from the [UVR model repository](https://github.com/TRvlvr/model_repo/releases)
 
 ## About
 
@@ -30,8 +124,8 @@ These bundles contain the UVR interface, Python, PyTorch, and other dependencies
 - Download the UVR installer for Windows via the link below:
     - [Main Download Link](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.6/UVR_v5.6.0_setup.exe)
     - [Main Download Link mirror](https://www.mediafire.com/file_premium/jiatpgp0ljou52p/UVR_v5.6.0_setup.exe/file)
-- If you use an **AMD Radeon or Intel Arc graphics card**, you can try the DirectML version:
-    - [DirectML Version - Main Download Link](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.6/UVR_1_15_25_22_30_BETA_full.exe)
+- If you use an **AMD Radeon or Intel Arc graphics card**, you can try the OpenCL version:
+    - [OpenCL Version - Main Download Link](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.6/UVR_v5.6.0_setup_opencl.exe)
 - Update Package instructions for those who have UVR already installed:
     - If you already have UVR installed you can install this package over it or download it straight from the application or [click here for the patch](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.6/UVR_Patch_10_6_23_4_27.exe).
 
@@ -74,169 +168,58 @@ In order to use the Time Stretch or Change Pitch tool, you'll need Rubber Band.
 
 </details>
 
-### MacOS Installation
-- Please Note:
-    - The MacOS Sonoma mouse clicking issue has been fixed.
-    - MPS (GPU) acceleration for Mac M1 has been expanded to work with Demucs v4 and all MDX-Net models.
-    - This bundle is intended for those running macOS Big Sur and above.
-    - Application functionality for systems running macOS Catalina or lower is not guaranteed.
-    - Application functionality for older or budget Mac systems is not guaranteed.
-    - Once everything is installed, the application may take up to 5-10 minutes to start for the first time (depending on your Macbook).
-
-- Download the UVR dmg for MacOS via one of the links below:
-    - Mac M1 (arm64) users:
-       - [Main Download Link](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.6/Ultimate_Vocal_Remover_v5_6_MacOS_arm64.dmg)
-       - [Main Download Link mirror](https://www.mediafire.com/file_premium/u3rk54wsqadpy93/Ultimate_Vocal_Remover_v5_6_MacOS_arm64.dmg/file)
-
-    - Mac Intel (x86_64) users:
-       - [Main Download Link](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.6/Ultimate_Vocal_Remover_v5_6_MacOS_x86_64.dmg)
-       - [Main Download Link mirror](https://www.mediafire.com/file_premium/2gf1werx5ly5ylz/Ultimate_Vocal_Remover_v5_6_MacOS_x86_64.dmg/file)
-
-<details id="CannotOpen">
-  <summary>MacOS Users: Having Trouble Opening UVR?</summary>
-
-> Due to Apples strict application security, you may need to follow these steps to open UVR.
->
-> First, run the following command via Terminal.app to allow applications to run from all sources (it's recommended that you re-enable this once UVR opens properly.)
-> 
-> ```bash
-> sudo spctl --master-disable
-> ```
-> 
-> Second, run the following command to bypass Notarization: 
-> 
-> ```bash
-> sudo xattr -rd com.apple.quarantine /Applications/Ultimate\ Vocal\ Remover.app
-> ```
-
-</details>
-
-<details id="MacInstall">
-  <summary>Manual MacOS Installation</summary>
-
-### Manual MacOS Installation
-
-- Download and save this repository [here](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip)
-- Download and install Python 3.10 [here](https://www.python.org/ftp/python/3.10.9/python-3.10.9-macos11.pkg)
-- From the saved directory run the following - 
-
-```
-pip3 install -r requirements.txt
-```
-
-- If your Mac is running with an M1, please run the following command next. If not, skip this step. - 
-
-```
-cp /Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/_soundfile_data/libsndfile_arm64.dylib /Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/_soundfile_data/libsndfile.dylib
-```
-
-**FFmpeg Installation**
-
-- Once everything is done installing, download the correct FFmpeg binary for your system [here](http://www.osxexperts.net) and place it into the main application directory.
-
-**Rubber Band Installation**
-
-In order to use the Time Stretch or Change Pitch tool, you'll need Rubber Band.
-
-- Download the precompiled build [here](https://breakfastquay.com/files/releases/rubberband-3.1.2-gpl-executable-windows.zip)
-- From the archive, extract the following files to the UVR/lib_v5 application directory:
-   - ```rubberband-3.1.2-gpl-executable-macos/rubberband```
-
-This process has been tested on a MacBook Pro 2021 (using M1) and a MacBook Air 2017 and is confirmed to be working on both.
-
-</details>
-
-
-### Linux Installation (Updated Instructions)
+### Linux Installation
 
 <details id="LinuxInstall">
   <summary>See Linux Installation Instructions</summary>
 
 <br />
+    
+**These install instructions are for Debian & Arch based Linux systems.**
 
-**These installation instructions are for Debian & Arch-based Linux systems.**
+- Download and save this repository [here](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip)
+- From the saved directory run the following commands in this order- 
 
----
-
-#### **Step 1: Download the Repository**
-- Download and save this repository from [GitHub](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip).
-- Extract the downloaded file to a directory of your choice.
-
----
-
-#### **Step 2: Install Dependencies**
-Use the following commands based on your system type:
-
-**For Debian-based systems (Ubuntu, Mint, etc.):**
-```bash
+**For Debian Based (Ubuntu, Mint, etc.):**
+```
 sudo apt update && sudo apt upgrade
-sudo apt-get install -y ffmpeg python3-pip python3-tk
+sudo apt-get update
+sudo apt install ffmpeg
+sudo apt install python3-pip
+sudo apt-get -y install python3-tk
+pip3 install -r requirements.txt
+python3 UVR.py
 ```
 
-**For Arch-based systems (EndeavourOS):**
-```bash
+**For Arch Based (EndeavourOS):**
+```
 sudo pacman -Syu
-sudo pacman -S ffmpeg python-pip tk
+sudo pacman -Sy
+sudo pacman -S python-pip
+sudo pacman -S --noconfirm tk
+sudo pacman -S ffmpeg
 ```
 
----
+To bypass environment setup and proceed with the installation, use:
 
-#### **Step 3: Set Up a Virtual Environment (Recommended)**
-Setting up a virtual environment (venv) ensures that the program's dependencies do not interfere with system-wide Python packages.
+- Take caution; this modifies system files.
 
-1. **Navigate to the extracted repository directory:**
-   ```bash
-   cd /path/to/ultimatevocalremovergui
-   ```
+```
+sudo rm /usr/lib/python3.11/EXTERNALLY-MANAGED
+```
 
-2. **Create a virtual environment:**
-   ```bash
-   python3 -m venv venv
-   ```
+Then proceed with the following in order:
 
-3. **Activate the virtual environment:**
-   - For **Debian-based and Arch-based systems:**
-     ```bash
-     source venv/bin/activate
-     ```
-
-4. **Install dependencies in the virtual environment:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
----
-
-#### **Step 4: Run the Application**
-While the virtual environment is activated, start the application:
-```bash
+```
+chmod +x install_packages.sh
+./install_packages.sh
 python UVR.py
 ```
-
----
-
-#### **Important Notes**
-1. **Avoid Modifying System Files:**  
-   Previous instructions suggested deleting the `/usr/lib/python3.11/EXTERNALLY-MANAGED` file, which is dangerous and can break Python package management. Do **NOT** delete this file.
-
-2. **Why Use Virtual Environments?**  
-   Virtual environments isolate the program's dependencies, preventing conflicts with system Python packages. More information is available [here](https://stackoverflow.com/questions/75602063/pip-install-r-requirements-txt-is-failing-this-environment-is-externally-mana/75696359#75696359).
-
-3. **Known Issues and Discussions:**  
-   - [Issue #1578](https://github.com/Anjok07/ultimatevocalremovergui/issues/1578)  
-   - [Pull Request #1068](https://github.com/Anjok07/ultimatevocalremovergui/pull/1068)
-
----
-
-If you encounter issues, refer to the [GitHub Issues](https://github.com/Anjok07/ultimatevocalremovergui/issues) page for help. 
 
 </details>
 
 ### Other Application Notes
-- Nvidia GTX 1060 6GB is the minimum requirement for GPU conversions.
-- Nvidia GPUs with at least 8GBs of V-RAM are recommended.
-- AMD Radeon GPU supported is limited at this time.
-   - There is currently a working branch for AMD GPU users [here](https://github.com/Anjok07/ultimatevocalremovergui/tree/v5.6-amd-gpu)
+- GPUs with at least 8GBs of V-RAM are recommended.
 - This application is only compatible with 64-bit platforms. 
 - This application relies on the Rubber Band library for the Time-Stretch and Pitch-Shift options.
 - This application relies on FFmpeg to process non-wav audio files.
